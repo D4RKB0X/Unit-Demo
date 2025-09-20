@@ -3,64 +3,87 @@
 #include <limits>
 #include <ctime>
 
-template <typename T> 
+template <typename T>
 T getInput(const std::string& prompt) {
     T value;
-    while(true) {
+    while (true) {
         std::cout << prompt;
         std::cin >> value;
-        
-        if(std::cin.fail()) {
-           std::cin.clear();
-           std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-           std::cout << "Invalid Input! Try Again!\n";
-           continue;
+
+        if (std::cin.fail()) {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cout << "Invalid Input! Try Again!\n";
+            continue;
         }
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         return value;
     }
 }
 
-void takeDamage(int &hp, int damage, int strikes) {
-    
+void takeDamage(int damage, int strikes, int &currentHP) {
     int totalDamage = damage * strikes;
-    int roll = rand() % 10 + 1;
+    int chance = rand() % 10 + 1;
 
-    // Chance to Critical Strike
-    if(roll == 1) {
+    if (chance == 1) {
         totalDamage *= 2;
         std::cout << "\nCritical Hit!";
-        std::cout << "\nYour Current Health is " << hp;
     }
-    
-    hp -= totalDamage;
-    std::cout << "\nEnemy Dealt " << totalDamage << " Damage!";
 
-    if(hp >= 250) {
-        std::cout << "\nYour Current Health is " << hp;
-        std::cout << "\nContinue Fighting!";
-    }
-    else if(hp >= 100) {
-        std::cout << "\nYour Current Health is " << hp;
-        std::cout << "\nRetreat and Regroup!";
-    }
-    else if(hp == 1) {
-        std::cout << "\nRun! Dammit, Run!";
-    }
-    else {
-        std::cout << "\nYou're Dead!";
+    currentHP -= totalDamage;
+    if (currentHP < 0) currentHP = 0;
+
+    std::cout << "\nEnemy dealt " << totalDamage << " damage!";
+    std::cout << "\nYour Current Health is " << currentHP;
+
+    if (currentHP >= 250) {
+        std::cout << "\nContinue Fighting!\n";
+    } else if (currentHP >= 100) {
+        std::cout << "\nRetreat and Regroup!\n";
+    } else if (currentHP > 0) {
+        std::cout << "\nRun! Dammit, Run!\n";
+    } else {
+        std::cout << "\nYou're Dead!\n";
     }
 }
 
+void heal(int &currentHP, int potion, int maxHP) {
+    int oldHP = currentHP;
+    currentHP += potion;
+
+    if (currentHP >= maxHP) {
+        int shield = currentHP - maxHP;
+        currentHP = maxHP;
+
+        if (shield > 0) {
+            std::cout << "\nRemaining " << shield << " will be used as shield!";
+        } else {
+            std::cout << "\nFully Healed!";
+        }
+    } else if (currentHP > oldHP) {
+        std::cout << "\nPartially Healed!";
+    } else {
+        std::cout << "\nStill Weak! Buy a Health Potion now!";
+    }
+
+    std::cout << "\nYour Current Health is " << currentHP << "\n";
+}
+
 int main() {
-    
     srand(time(NULL));
-    
-    int hp = getInput<int>("Enter you current HP: ");
-    int damage = getInput<int>("Enter the damage you've recieved: ");
-    int strikes = getInput<int>("Enter how many strikes the enemy dealt: ");
-    
-    takeDamage(hp, damage, strikes);
-    
+
+    const int maxHP = 500;
+    int currentHP = maxHP;
+
+    std::cout << "You are a Knight and you have " << maxHP << " Health.\n";
+
+    int damage = getInput<int>("Enter enemy damage: ");
+    int strikes = getInput<int>("Enter enemy strikes: ");
+
+    takeDamage(damage, strikes, currentHP);
+
+    int potion = getInput<int>("\nEnter the potion HP recovered: ");
+    heal(currentHP, potion, maxHP);
+
     return 0;
 }
